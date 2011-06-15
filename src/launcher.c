@@ -169,6 +169,16 @@ int main(int argc, char **argv)
         mem_write_dword(hProcess, 0x00547193, width / 2);
         mem_write_dword(hProcess, 0x0054719A, height / 2); // this is used for both, interesting results in widescreen, adjust -100 offsets?
 
+        // surrender dialog
+        mem_write_dword(hProcess, 0x00503E3C, height / 2 + 25); // ok button offset top
+        mem_write_dword(hProcess, 0x00503E4B, width / 2 - 100); // ok button offset left
+        mem_write_dword(hProcess, 0x00503E66, height / 2 + 25); // cancel button offset top
+        mem_write_dword(hProcess, 0x00503E75, width / 2 + 10); // cancel button offset left
+        mem_write_dword(hProcess, 0x00503F05, width / 2 - 0x1E0 / 2); // dialog offset left, magic = dialog width
+        mem_write_dword(hProcess, 0x00503F0D, height / 2 - 0x7E / 2); // dialog offset top, magic = dialog height
+        mem_write_dword(hProcess, 0x00503F3A, height / 2 - 23); // caption offset from center of the screen (up)
+        mem_write_dword(hProcess, 0x00503F3F, width / 2); // caption center offset from left
+
         /* game area width is multiples of 24 and the hud needs to be placed exactly after that, thus, this crappy math */
         width = ((width - 160) / 24 * 24) + 160;
 
