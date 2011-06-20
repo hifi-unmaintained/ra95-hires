@@ -17,6 +17,29 @@
 #include <windows.h>
 #include <stdio.h>
 
+void mem_write_code(HANDLE hProcess, DWORD address, BYTE *code, DWORD len, DWORD addr_ret)
+{
+    DWORD dwWritten;
+    BYTE jmp[] = { 0xE9, 0x00, 0x00, 0x00, 0x00 };
+
+    DWORD code_address = (DWORD)VirtualAllocEx(hProcess, NULL, len + 5 /* inc jmp <rel> */, MEM_COMMIT|MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+    DWORD code_rel_addr = code_address - (address + 5);
+    DWORD addr_ret_rel = addr_ret - (code_address + len + 5);
+
+    /* write JMP <code_rel_addr> to address */
+    memcpy(jmp + 1, &code_rel_addr, 4);
+    VirtualProtectEx(hProcess, (void *)address, 5, PAGE_EXECUTE_READWRITE, NULL);
+    WriteProcessMemory(hProcess, (void *)address, jmp, 5, &dwWritten);
+
+    /* write actual code */
+    WriteProcessMemory(hProcess, (void *)code_address, code, len, &dwWritten);
+
+    /* write jmp back */
+    memcpy(jmp + 1, &addr_ret_rel, 4);
+    VirtualProtectEx(hProcess, (void *)code_address + len, 5, PAGE_EXECUTE_READWRITE, NULL);
+    WriteProcessMemory(hProcess, (void *)code_address + len, jmp, 5, &dwWritten);
+}
+
 void mem_write_byte(HANDLE hProcess, DWORD address, BYTE val)
 {
     DWORD dwWritten;
@@ -156,6 +179,30 @@ int main(int argc, char **argv)
         mem_write_dword(hProcess, 0x006016B0, width);
         mem_write_dword(hProcess, 0x0055295F, height);
         mem_write_dword(hProcess, 0x00552966, height);
+
+        // main menu background
+        BYTE code[] = {
+            0x68, 0x00, 0x00, 0x00, 0x00,
+            0x68, 0x00, 0x00, 0x00, 0x00,
+            0x6A, 0x00,
+            0x6A, 0x00
+        };
+
+        int top = height / 2 - 400 / 2;
+        int left = width / 2 - 640 / 2;
+
+        memcpy(code + 1, &top, 4);
+        memcpy(code + 6, &left, 4);
+
+        mem_write_code(hProcess, 0x005B3DBF, code, sizeof(code), 0x005B3DC7);
+
+        // main menu version
+        mem_write_dword(hProcess, 0x00501D63, width / 2 - 16);
+        mem_write_dword(hProcess, 0x00501D68, height / 2);
+
+        // main menu buttons
+        mem_write_dword(hProcess, 0x00501DB9, width / 2 - 116);
+        mem_write_dword(hProcess, 0x00501DBE, height / 2 - 26);
 
         // map scrolling
         mem_write_dword(hProcess, 0x00547119, width - 100);
