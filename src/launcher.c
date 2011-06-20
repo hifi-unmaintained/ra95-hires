@@ -196,6 +196,10 @@ int main(int argc, char **argv)
 
         mem_write_code(hProcess, 0x005B3DBF, code, sizeof(code), 0x005B3DC7);
 
+        // main menu please wait...
+        mem_write_dword(hProcess, 0x004F43BF, height / 2 + 40);
+        mem_write_dword(hProcess, 0x004F43C4, width / 2);
+
         // main menu version
         mem_write_dword(hProcess, 0x00501D63, width / 2 - 16);
         mem_write_dword(hProcess, 0x00501D68, height / 2);
@@ -203,6 +207,30 @@ int main(int argc, char **argv)
         // main menu buttons
         mem_write_dword(hProcess, 0x00501DB9, width / 2 - 116);
         mem_write_dword(hProcess, 0x00501DBE, height / 2 - 26);
+
+        // multiplayer menu (dialog)
+        mem_write_dword(hProcess, 0x0050347D, height / 2 - 34);
+        mem_write_dword(hProcess, 0x00503482, width / 2 - 190);
+
+        // ... modem/serial
+        mem_write_dword(hProcess, 0x005034F5, height / 2 + 8);
+        mem_write_dword(hProcess, 0x00503502, width / 2 - 80);
+
+        // ... skirmish
+        mem_write_dword(hProcess, 0x0050351D, height / 2 + 30);
+        mem_write_dword(hProcess, 0x0050352C, width / 2 - 80);
+
+        // ... network
+        mem_write_dword(hProcess, 0x0050354A, height / 2 + 52);
+        mem_write_dword(hProcess, 0x00503559, width / 2 - 80);
+
+        // ... internet
+        mem_write_dword(hProcess, 0x00503577, height / 2 + 74);
+        mem_write_dword(hProcess, 0x00503586, width / 2 - 80);
+
+        // ... cancel
+        mem_write_dword(hProcess, 0x005034C9, height / 2 + 106);
+        mem_write_dword(hProcess, 0x0050349D, width / 2 - 60);
 
         // map scrolling
         mem_write_dword(hProcess, 0x00547119, width - 100);
