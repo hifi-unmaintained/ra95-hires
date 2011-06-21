@@ -17,6 +17,9 @@
 #include <windows.h>
 #include <stdio.h>
 
+int width;
+int height;
+
 void mem_write_code(HANDLE hProcess, DWORD address, BYTE *code, DWORD len, DWORD addr_ret)
 {
     DWORD dwWritten;
@@ -51,6 +54,40 @@ void mem_write_dword(HANDLE hProcess, DWORD address, DWORD val)
 {
     DWORD dwWritten;
     VirtualProtectEx(hProcess, (void *)address, sizeof(DWORD), PAGE_EXECUTE_READWRITE, NULL);
+    WriteProcessMemory(hProcess, (void *)address, &val, sizeof(DWORD), &dwWritten);
+}
+
+void mem_adjust_dword_top(HANDLE hProcess, DWORD address)
+{
+    DWORD dwWritten;
+    DWORD val;
+    VirtualProtectEx(hProcess, (void *)address, sizeof(DWORD), PAGE_EXECUTE_READWRITE, NULL);
+    ReadProcessMemory(hProcess, (void *)address, &val, sizeof(DWORD), &dwWritten);
+
+    if ((unsigned int)val > 400) {
+        printf("Error: mem_adjust_word_top called with an value over 400!\n");
+        return;
+    }
+
+    val = height / 2 - (200 - val);
+
+    WriteProcessMemory(hProcess, (void *)address, &val, sizeof(DWORD), &dwWritten);
+}
+
+void mem_adjust_dword_left(HANDLE hProcess, DWORD address)
+{
+    DWORD dwWritten;
+    DWORD val;
+    VirtualProtectEx(hProcess, (void *)address, sizeof(DWORD), PAGE_EXECUTE_READWRITE, NULL);
+    ReadProcessMemory(hProcess, (void *)address, &val, sizeof(DWORD), &dwWritten);
+
+    if ((unsigned int)val > 640) {
+        printf("Error: mem_adjust_word_left called with an value over 400!\n");
+        return;
+    }
+
+    val = width / 2 - (320 - val);
+
     WriteProcessMemory(hProcess, (void *)address, &val, sizeof(DWORD), &dwWritten);
 }
 
@@ -141,8 +178,8 @@ int main(int argc, char **argv)
     DWORD gameSize = 0;
     char gameParamsFull[MAX_PATH];
 
-    int width = param_int(argc, argv, "-w", 1024);
-    int height = param_int(argc, argv, "-h", 768);
+    width = param_int(argc, argv, "-w", 1024);
+    height = param_int(argc, argv, "-h", 768);
 
     if (!FileExists(gameExe))
     {
@@ -182,10 +219,10 @@ int main(int argc, char **argv)
 
         // main menu background
         BYTE code[] = {
-            0x68, 0x00, 0x00, 0x00, 0x00,
-            0x68, 0x00, 0x00, 0x00, 0x00,
-            0x6A, 0x00,
-            0x6A, 0x00
+            0x68, 0x00, 0x00, 0x00, 0x00,   // PUSH DWORD
+            0x68, 0x00, 0x00, 0x00, 0x00,   // PUSH DWORD
+            0x6A, 0x00,                     // PUSH 0
+            0x6A, 0x00                      // PUSH 0
         };
 
         int top = height / 2 - 400 / 2;
@@ -207,6 +244,38 @@ int main(int argc, char **argv)
         // main menu buttons
         mem_write_dword(hProcess, 0x00501DB9, width / 2 - 116);
         mem_write_dword(hProcess, 0x00501DBE, height / 2 - 26);
+
+        // new game skill select
+        // ... ok button
+        mem_adjust_dword_top(hProcess, 0x005517CB);
+        mem_adjust_dword_left(hProcess, 0x005517DA);
+
+        // ... dialog
+        mem_adjust_dword_top(hProcess, 0x0055188A);
+        mem_adjust_dword_left(hProcess, 0x0055188F);
+
+        // ... slider
+        mem_adjust_dword_top(hProcess, 0x005517F0);
+        mem_adjust_dword_left(hProcess, 0x005517F5);
+
+        // ... text
+        /*
+        mem_adjust_dword_top(hProcess, 0x005518A4);
+        mem_adjust_dword_left(hProcess, 0x005518A9);
+        */
+        // main menu background
+        BYTE skill_text_code[] = {
+            0x68, 0x00, 0x00, 0x00, 0x00,   // PUSH DWORD
+            0x68, 0x00, 0x00, 0x00, 0x00,   // PUSH DWORD
+        };
+
+        top = height / 2 - (200 - 0x96);
+        left = width / 2 - (320 - 0x6E);
+
+        memcpy(skill_text_code + 1, &top, 4);
+        memcpy(skill_text_code + 6, &left, 4);
+
+        mem_write_code(hProcess, 0x005518A3, skill_text_code, sizeof(skill_text_code), 0x005518AA);
 
         // multiplayer menu (dialog)
         mem_write_dword(hProcess, 0x0050347D, height / 2 - 34);
