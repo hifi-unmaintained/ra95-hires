@@ -259,11 +259,6 @@ int main(int argc, char **argv)
         mem_adjust_dword_left(hProcess, 0x005517F5);
 
         // ... text
-        /*
-        mem_adjust_dword_top(hProcess, 0x005518A4);
-        mem_adjust_dword_left(hProcess, 0x005518A9);
-        */
-        // main menu background
         BYTE skill_text_code[] = {
             0x68, 0x00, 0x00, 0x00, 0x00,   // PUSH DWORD
             0x68, 0x00, 0x00, 0x00, 0x00,   // PUSH DWORD
