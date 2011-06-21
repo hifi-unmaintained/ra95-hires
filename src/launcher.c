@@ -272,6 +272,24 @@ int main(int argc, char **argv)
 
         mem_write_code(hProcess, 0x005518A3, skill_text_code, sizeof(skill_text_code), 0x005518AA);
 
+        // load/save game dialogs
+        // ... dialog
+        mem_adjust_dword_left(hProcess, 0x004FCED0);
+        mem_adjust_dword_top(hProcess, 0x004FCED5);
+
+        // ... list
+        mem_adjust_dword_left(hProcess, 0x004FCEFB);
+        mem_adjust_dword_top(hProcess, 0x004FCF00);
+
+        // ... mission description
+        mem_adjust_dword_left(hProcess, 0x004FCEDA);
+        mem_adjust_dword_top(hProcess, 0x004FCF05);
+
+        // .. buttons
+        mem_adjust_dword_left(hProcess, 0x004FCF0A);
+        mem_adjust_dword_left(hProcess, 0x004FCF31);
+        mem_adjust_dword_top(hProcess, 0x004FCF36);
+
         // multiplayer menu (dialog)
         mem_write_dword(hProcess, 0x0050347D, height / 2 - 34);
         mem_write_dword(hProcess, 0x00503482, width / 2 - 190);
