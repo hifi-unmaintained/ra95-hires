@@ -314,6 +314,32 @@ int main(int argc, char **argv)
         mem_write_dword(hProcess, 0x005034C9, height / 2 + 106);
         mem_write_dword(hProcess, 0x0050349D, width / 2 - 60);
 
+        // skirmish dialog
+        BYTE skirmish_dialog[] =
+        {
+            0x89, 0x95, 0x28, 0xFE, 0xFF, 0xFF,                         // MOV [EBP-1D8],EDX
+            0x89, 0x5D, 0x94,                                           // MOV [EBP-6C],EBX
+            0xC7, 0x85, 0x2C, 0xFE, 0xFF, 0xFF, 0x00 ,0x00, 0x00, 0x00, // MOV [EBP-1D4], DWORD
+            0xC7, 0x85, 0x30, 0xFE, 0xFF, 0xFF, 0x00 ,0x00, 0x00, 0x00, // MOV [EBP-1D0], DWORD
+        };
+
+        top = height / 2 - 200;
+        left = width / 2 - 320;
+
+        memcpy(skirmish_dialog + 15, &left, 4);
+        memcpy(skirmish_dialog + 25, &top, 4);
+
+        mem_write_code(hProcess, 0x005128C9, skirmish_dialog, sizeof(skirmish_dialog), 0x005128E0);
+
+        // ... all dialog items offset top
+        mem_adjust_dword_top(hProcess, 0x00512907);
+
+        // ... some left offsets, these control various elements
+        mem_adjust_dword_left(hProcess, 0x00512902);
+        mem_adjust_dword_left(hProcess, 0x0051293A);
+        mem_adjust_dword_left(hProcess, 0x00512944);
+        mem_adjust_dword_left(hProcess, 0x0051296B);
+
         // map scrolling
         mem_write_dword(hProcess, 0x00547119, width - 100);
         mem_write_dword(hProcess, 0x00547129, width);
