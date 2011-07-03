@@ -20,6 +20,37 @@
 int width;
 int height;
 
+// read fix_len amount of bytes from address, append them to code before JMP back
+void mem_insert_code(HANDLE hProcess, DWORD address, DWORD fix_len, BYTE *code, DWORD code_len)
+{
+    DWORD dwWritten;
+    BYTE jmp[] = { 0xE9, 0x00, 0x00, 0x00, 0x00 };
+    BYTE fix[8];
+
+    DWORD code_address = (DWORD)VirtualAllocEx(hProcess, NULL, code_len + fix_len + 5 /* inc fix + jmp <rel> */, MEM_COMMIT|MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+    DWORD code_rel_addr = code_address - (address + 5);
+    DWORD addr_ret_rel = address + fix_len - (code_address + code_len + fix_len + 5);
+
+    /* write actual code */
+    VirtualProtectEx(hProcess, (void *)code_address, code_len + fix_len + 5, PAGE_EXECUTE_READWRITE, NULL);
+    WriteProcessMemory(hProcess, (void *)code_address, code, code_len, &dwWritten);
+
+    /* read/write fix */
+    VirtualProtectEx(hProcess, (void *)address, fix_len, PAGE_EXECUTE_READWRITE, NULL);
+    ReadProcessMemory(hProcess, (void *)address, &fix, fix_len, &dwWritten);
+    WriteProcessMemory(hProcess, (void *)code_address + code_len, fix, fix_len, &dwWritten);
+
+    /* write jmp back */
+    memcpy(jmp + 1, &addr_ret_rel, 4);
+    VirtualProtectEx(hProcess, (void *)code_address + code_len + fix_len, 5, PAGE_EXECUTE_READWRITE, NULL);
+    WriteProcessMemory(hProcess, (void *)code_address + code_len + fix_len, jmp, 5, &dwWritten);
+
+    /* write JMP <code_rel_addr> to address */
+    memcpy(jmp + 1, &code_rel_addr, 4);
+    VirtualProtectEx(hProcess, (void *)address, 5, PAGE_EXECUTE_READWRITE, NULL);
+    WriteProcessMemory(hProcess, (void *)address, jmp, 5, &dwWritten);
+}
+
 void mem_write_code(HANDLE hProcess, DWORD address, BYTE *code, DWORD len, DWORD addr_ret)
 {
     DWORD dwWritten;
@@ -211,6 +242,20 @@ int main(int argc, char **argv)
     if (CreateProcessA(gameExe, (LPSTR)gameParamsFull, 0, 0, FALSE, CREATE_SUSPENDED, 0, 0, &sInfo, &pInfo))
     {
         HANDLE hProcess = OpenProcess(PROCESS_VM_OPERATION|PROCESS_VM_READ|PROCESS_VM_WRITE, FALSE, pInfo.dwProcessId);
+
+        /* absolute call to _Buffer_Clear */
+        BYTE buffer_clear[] =
+        {
+            0x6A, 0x00,                   // PUSH 0
+            0x68, 0xCC, 0x07, 0x68, 0x00, // PUSH OFFSET 0068065C
+            //0x68, 0x5C, 0x06, 0x68, 0x00, // PUSH OFFSET 0068065C
+            0xB8, 0xE0, 0x4D, 0x5C, 0x00, // MOV EAX,005C4DE0 (_Buffer_Clear)
+            0xFF, 0xD0,                   // CALL EAX
+            0x83, 0xC4, 0x08              // ADD ESP,8
+        };
+
+        // clear the main menu background completely
+        mem_insert_code(hProcess, 0x004F479B, 5, buffer_clear, sizeof(buffer_clear));
 
         // width is the actual window width, height is both resolution switches from ini forced to hires
         mem_write_dword(hProcess, 0x006016B0, width);
