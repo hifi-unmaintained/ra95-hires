@@ -340,6 +340,45 @@ int main(int argc, char **argv)
         mem_adjust_dword_left(hProcess, 0x00512944);
         mem_adjust_dword_left(hProcess, 0x0051296B);
 
+        // sound controls dialog
+        mem_adjust_dword_top(hProcess, 0x005502A9);
+        mem_adjust_dword_left(hProcess, 0x005503BA);
+
+        // ... song list
+        mem_adjust_dword_left(hProcess, 0x005502E4);
+        mem_adjust_dword_top(hProcess, 0x00550304);
+
+        // ... ok button
+        mem_adjust_dword_top(hProcess, 0x00550331);
+        mem_adjust_dword_left(hProcess, 0x00550341);
+
+        // ... stop button
+        mem_adjust_dword_top(hProcess, 0x00550356);
+        mem_adjust_dword_left(hProcess, 0x00550360);
+
+        // ... play button
+        mem_adjust_dword_top(hProcess, 0x0055037C);
+        mem_adjust_dword_left(hProcess, 0x00550386);
+
+        // ... shuffle button
+        mem_adjust_dword_top(hProcess, 0x005503B5);
+        mem_adjust_dword_left(hProcess, 0x005503C2);
+
+        // ... repeat button
+        mem_adjust_dword_top(hProcess, 0x005503E7);
+        mem_adjust_dword_left(hProcess, 0x005503F6);
+
+        // ... music volume slider
+        mem_adjust_dword_top(hProcess, 0x0055040F);
+        mem_adjust_dword_left(hProcess, 0x00550414);
+
+        // ... sound volume slider
+        mem_adjust_dword_top(hProcess, 0x00550432);
+        mem_adjust_dword_left(hProcess, 0x00550437);
+
+        // ... gadget offset top (left is from dialog left)
+        mem_adjust_dword_top(hProcess, 0x0055045A);
+
         // map scrolling
         mem_write_dword(hProcess, 0x00547119, width - 100);
         mem_write_dword(hProcess, 0x00547129, width);
