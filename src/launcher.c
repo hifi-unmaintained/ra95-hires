@@ -259,6 +259,9 @@ int main(int argc, char **argv)
         // clear the palette image before the main buffer is unlocked so it is not shown before the main menu
         mem_insert_code(hProcess, 0x004F75FB, 5, buffer_clear, sizeof(buffer_clear));
 
+        // mission briefing from in-game
+        mem_insert_code(hProcess, 0x0053BEE0, 5, buffer_clear, sizeof(buffer_clear));
+
         // width is the actual window width, height is both resolution switches from ini forced to hires
         mem_write_dword(hProcess, 0x006016B0, width);
         mem_write_dword(hProcess, 0x0055295F, height);
