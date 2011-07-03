@@ -283,6 +283,9 @@ int main(int argc, char **argv)
 
         mem_write_code(hProcess, 0x005B3DBF, code, sizeof(code), 0x005B3DC7);
 
+        // intro sequence video position
+        mem_write_code(hProcess, 0x004A9EA9, code, sizeof(code), 0x004A9EB1);
+
         // main menu please wait...
         mem_write_dword(hProcess, 0x004F43BF, height / 2 + 40);
         mem_write_dword(hProcess, 0x004F43C4, width / 2);
