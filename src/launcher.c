@@ -247,8 +247,7 @@ int main(int argc, char **argv)
         BYTE buffer_clear[] =
         {
             0x6A, 0x00,                   // PUSH 0
-            0x68, 0xCC, 0x07, 0x68, 0x00, // PUSH OFFSET 0068065C
-            //0x68, 0x5C, 0x06, 0x68, 0x00, // PUSH OFFSET 0068065C
+            0x68, 0xCC, 0x07, 0x68, 0x00, // PUSH OFFSET 006807CC
             0xB8, 0xE0, 0x4D, 0x5C, 0x00, // MOV EAX,005C4DE0 (_Buffer_Clear)
             0xFF, 0xD0,                   // CALL EAX
             0x83, 0xC4, 0x08              // ADD ESP,8
